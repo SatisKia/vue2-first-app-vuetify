@@ -1,11 +1,11 @@
 <template>
-  <div class="label" v-bind:style="{ 'background-color': (todo.done ? '#808080' : todo.color) }">
-    <div style="width:100%">
+  <v-card class="mt-1 pa-0 text-body-1" v-bind:style="{ 'background-color': (todo.done ? '#808080' : todo.color) }">
+    <v-card-text class="ma-0 pa-0 text-body-1" style="width:100%">
       <table class="table">
         <tbody>
           <tr>
             <td class="td" style="width:5%">
-              <input type="checkbox" v-bind:checked="todo.done" v-on:change="done" />
+              <v-checkbox class="my-4 pa-0" v-model="todoDone" v-on:change="done" hide-details />
             </td>
             <td class="td" style="width:20%">
               <span>{{ date }}</span>
@@ -14,13 +14,13 @@
               <span>{{ todo.text }}</span>
             </td>
             <td class="td" style="width:10%">
-              <button v-if="todo.done" style="width:100%; border:0" v-bind:style="{ 'background-color': (todo.done ? '#808080' : todo.color) }" v-on:click="remove">消</button>
+              <v-btn v-if="todo.done" plain style="width:100%" v-bind:style="{ 'background-color': (todo.done ? '#808080' : todo.color) }" v-on:click="remove">消</v-btn>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-  </div>
+    </v-card-text>
+  </v-card>
 </template>
 
 <script lang="ts">
@@ -35,6 +35,11 @@ function keta (value: number): string {
 }
 
 export default Vue.extend({
+  data () {
+    return {
+      todoDone: false
+    }
+  },
   props: {
     todo: {
       type: Object as PropType<Todo>,
@@ -77,6 +82,7 @@ export default Vue.extend({
   },
   created: function () {
     console.log('TodoLabel created')
+    this.todoDone = this.$props.todo.done
   },
   beforeMount: function () {
     console.log('TodoLabel beforeMount')
@@ -100,9 +106,6 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.label {
-  margin: 4px 0 0 0;
-}
 .table {
   border: 0;
 }

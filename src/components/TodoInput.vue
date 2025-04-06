@@ -1,29 +1,26 @@
 <template>
-  <div>
-    <div style="display:flex">
-      <div style="width:50%">
+  <v-card-text class="ma-0 pa-0 text-body-1">
+    <v-card-actions class="ma-0 pa-0 text-body-1">
+      <v-card-text class="ma-0 pa-0 text-body-1" style="width:50%">
         <span>TODO:</span>
-      </div>
-      <div style="width:50%; text-align:right">
+      </v-card-text>
+      <v-card-text class="ma-0 pa-0 text-body-1" style="width:50%; text-align:right">
         <router-link to="/setting">設定</router-link>
-      </div>
-    </div>
-    <input type="text" class="input" v-model="text" placeholder="100文字まで" />
-    <div>
-      <input type="radio" id="color1" name="color" value="#80ffff" checked />
-      <label for="color1">シアン</label>
-      <input type="radio" id="color2" name="color" value="#ff80ff" />
-      <label for="color2">マゼンタ</label>
-      <input type="radio" id="color3" name="color" value="#ffff80" />
-      <label for="color3">イエロー</label>
-    </div>
-    <div v-if="!isError">
-      <button style="width:100%" v-on:click="onAdd" v-bind:disabled="(text.length == 0) || isError">登録</button>
-    </div>
-    <div v-if="isError">
+      </v-card-text>
+    </v-card-actions>
+    <v-text-field class="mt-0 py-0" style="width:100%" v-model="text" placeholder="100文字まで" hide-details />
+    <v-radio-group class="mt-0 py-1" row v-model="colorType" hide-details>
+      <v-radio label="シアン" id="color1" value="#80ffff" />
+      <v-radio label="マゼンタ" id="color2" value="#ff80ff" />
+      <v-radio label="イエロー" id="color3" value="#ffff80" />
+    </v-radio-group>
+    <v-card-text class="ma-0 pa-0 text-body-1" v-if="!isError">
+      <v-btn style="width:100%" v-on:click="onAdd" v-bind:disabled="(text.length == 0) || isError">登録</v-btn>
+    </v-card-text>
+    <v-card flat v-if="isError">
       <span class="error">入力できる文字は100文字までです</span>
-    </div>
-  </div>
+    </v-card>
+  </v-card-text>
 </template>
 
 <script lang="ts">
@@ -33,7 +30,8 @@ export default Vue.extend({
   data () {
     return {
       text: '',
-      isError: false
+      isError: false,
+      colorType: '#80ffff'
     }
   },
   methods: {
@@ -88,18 +86,6 @@ export default Vue.extend({
 </script>
 
 <style scoped>
-.input {
-  width: 100%;
-  border: 0;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 4px;
-  -moz-box-sizing: border-box;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-}
-.input:focus {
-  outline: none;
-}
 .error {
   color: #ff0000;
 }
