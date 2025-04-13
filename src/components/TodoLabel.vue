@@ -107,6 +107,7 @@ export default Vue.extend({
 
 <style scoped>
 .table {
+  width: 100%;
   border: 0;
 }
 .td {
