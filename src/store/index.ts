@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import { Todo } from '@/types/todo'
+import MyCookie from '@/plugins/Cookie'
 
 Vue.use(Vuex)
 
@@ -32,13 +33,20 @@ export default new Vuex.Store({
       state.todoList = [...state.todoList, payload.todo]
     },
     remove (state, payload: { id: string }) {
-      state.todoList = state.todoList.filter(todo => todo.id !== payload.id)
+      for (const todo of state.todoList) {
+        if (todo.id === payload.id) {
+          todo.removed = true
+        }
+      }
     },
     done (state, payload: { id: string }) {
       const todo = state.todoList.find(todo => todo.id === payload.id)
       if (todo) {
         todo.done = !todo.done
       }
+    },
+    clear (state) {
+      state.todoList = state.todoList.filter(todo => todo.removed !== true)
     },
     setDateType (state, payload: { dateType: number }) {
       state.dateType = payload.dateType
@@ -63,11 +71,58 @@ export default new Vuex.Store({
     done (context, payload: { id: string }) {
       context.commit('done', payload)
     },
+    clear (context) {
+      context.commit('clear')
+    },
     setDateType (context, payload: { dateType: number }) {
       context.commit('setDateType', payload)
     },
     setDispYear (context, payload: { dispYear: boolean }) {
       context.commit('setDispYear', payload)
+    },
+    loadData (context) {
+      // データの読み込み処理
+      context.commit('initialize')
+      const cookie: MyCookie = new MyCookie()
+      for (let i = 0; ; i++) {
+        const id = cookie.getValue('id' + i, '')
+        if (id.length === 0) {
+          break
+        }
+        const done = cookie.getBool('done' + i, false)
+        const removed = cookie.getBool('removed' + i, false)
+        const date = new Date(cookie.getNumber('date' + i, 0))
+        const text = cookie.getValue('text' + i, '')
+        const color = cookie.getValue('color' + i, '')
+        context.commit('push', {
+          todo: {
+            id: id,
+            done: done,
+            removed: removed,
+            date: date,
+            text: text,
+            color: color
+          }
+        })
+      }
+      context.commit('setDateType', { dateType: cookie.getNumber('dateType', 1) })
+      context.commit('setDispYear', { dispYear: cookie.getBool('dispYear', true) })
+    },
+    saveData (context) {
+      // データの書き込み処理
+      const todoList = context.getters.todoList
+      const cookie: MyCookie = new MyCookie()
+      let i = 0
+      for (; i < todoList.length; i++) {
+        const todo = todoList[i]
+        cookie.setValue('id' + i, todo.id)
+        cookie.setBool('done' + i, todo.done)
+        cookie.setBool('removed' + i, todo.removed)
+        cookie.setNumber('date' + i, todo.date.getTime())
+        cookie.setValue('text' + i, todo.text)
+        cookie.setValue('color' + i, todo.color)
+      }
+      cookie.setValue('id' + i, '')
     }
   }
 })

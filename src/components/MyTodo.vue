@@ -3,13 +3,26 @@
     <todo-input
       v-on:add="addTodo"
     />
-    <todo-label
-      v-for="todo in sortedTodo"
-      v-bind:key="todo.id"
-      v-bind:todo="todo"
-      v-on:done="doneTodo"
-      v-on:remove="removeTodo"
-    />
+    <v-tabs centered v-model="tab">
+      <v-tab style="width:50%">ACTIVE</v-tab>
+      <v-tab style="width:50%">LOG</v-tab>
+      <v-tab-item class="pb-1">
+        <todo-label
+          v-for="todo in sortedTodo"
+          v-bind:key="todo.id"
+          v-bind:todo="todo"
+          v-on:done="doneTodo"
+          v-on:remove="removeTodo"
+        />
+      </v-tab-item>
+      <v-tab-item class="pb-1">
+        <todo-label
+          v-for="todo in removedTodo"
+          v-bind:key="todo.id"
+          v-bind:todo="todo"
+        />
+      </v-tab-item>
+    </v-tabs>
   </v-card-text>
 </template>
 
@@ -18,64 +31,41 @@ import Vue from 'vue'
 import { Todo } from '@/types/todo'
 import TodoInput from '@/components/TodoInput.vue'
 import TodoLabel from '@/components/TodoLabel.vue'
-import MyCookie from '@/plugins/Cookie'
 
 export default Vue.extend({
   components: {
     TodoInput,
     TodoLabel
   },
+  data () {
+    return {
+      tab: 0 // ゼロオリジンの値
+    }
+  },
+  watch: {
+    tab (newVal) {
+      console.log(newVal)
+    }
+  },
   methods: {
     loadData: async function () {
       console.log('loadData')
 
-      // データの読み込み処理
-      this.$store.dispatch('initialize')
-      const cookie: MyCookie = new MyCookie()
-      for (let i = 0; ; i++) {
-        const id = cookie.getValue('id' + i, '')
-        if (id.length === 0) {
-          break
-        }
-        const done = cookie.getBool('done' + i, false)
-        const date = new Date(cookie.getNumber('date' + i, 0))
-        const text = cookie.getValue('text' + i, '')
-        const color = cookie.getValue('color' + i, '')
-        this.$store.dispatch('push', {
-          todo: {
-            id: id,
-            done: done,
-            date: date,
-            text: text,
-            color: color
-          }
-        })
-      }
-      this.$store.dispatch('setDateType', { dateType: cookie.getNumber('dateType', 1) })
-      this.$store.dispatch('setDispYear', { dispYear: cookie.getBool('dispYear', true) })
+      // データの読み込み
+      this.$store.dispatch('loadData')
     },
     saveData: function () {
       console.log('saveData')
 
-      // データの書き込み処理
-      const todoList = this.$store.getters.todoList
-      const cookie: MyCookie = new MyCookie()
-      let i = 0
-      for (; i < todoList.length; i++) {
-        const todo = todoList[i]
-        cookie.setValue('id' + i, todo.id)
-        cookie.setBool('done' + i, todo.done)
-        cookie.setNumber('date' + i, todo.date.getTime())
-        cookie.setValue('text' + i, todo.text)
-        cookie.setValue('color' + i, todo.color)
-      }
-      cookie.setValue('id' + i, '')
+      // データの書き込み
+      this.$store.dispatch('saveData')
     },
     addTodo: function (text: string, color: string) {
       this.$store.dispatch('add', {
         todo: {
           id: (new Date()).getTime().toString(),
           done: false,
+          removed: false,
           date: new Date(),
           text: text,
           color: color
@@ -95,10 +85,16 @@ export default Vue.extend({
   computed: {
     sortedTodo: function (): Todo[] {
       // 算出プロパティではデータを直接変更することができないため、sliceで配列をコピー
-      const todoList = this.$store.getters.todoList.slice()
+      let todoList = this.$store.getters.todoList.slice()
+      todoList = todoList.filter((todo: { removed: boolean }) => todo.removed !== true)
       return todoList.sort((a: Todo, b: Todo) => {
         return b.date.getTime() - a.date.getTime()
       })
+    },
+    removedTodo: function (): Todo[] {
+      // 算出プロパティではデータを直接変更することができないため、sliceで配列をコピー
+      const todoList = this.$store.getters.todoList.slice()
+      return todoList.filter((todo: { removed: boolean }) => todo.removed === true)
     }
   },
   beforeCreate: function () {
